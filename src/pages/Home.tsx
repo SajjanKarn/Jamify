@@ -5,12 +5,12 @@ import { useJamStore } from "../lib/store";
 import { PlayIcon, PauseIcon, SearchIcon, XIcon, GroupIcon } from "../components/icons";
 
 const SUGGESTIONS = [
-  "lofi hip hop",
-  "jazz classics",
-  "acoustic chill",
-  "synthwave",
-  "afrobeats 2024",
-  "classical piano",
+  "Pink Floyd",
+  "King Crimson",
+  "Tool",
+  "Black Label Society",
+  "Led Zeppelin",
+  "Black Sabbath",
 ];
 
 export default function Home() {
@@ -23,7 +23,7 @@ export default function Home() {
 
   // Initial browse.
   React.useEffect(() => {
-    search("lofi hip hop");
+    search("Pink Floyd greatest hits");
   }, [search]);
 
   // Debounced auto-search as the user types.
@@ -62,7 +62,7 @@ export default function Home() {
     e.preventDefault();
     setLoading(true);
     try {
-      await search(q.trim() || "lofi hip hop");
+      await search(q.trim() || "Pink Floyd greatest hits");
     } finally {
       setLoading(false);
     }

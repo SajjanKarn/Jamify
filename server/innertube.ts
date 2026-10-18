@@ -33,7 +33,7 @@ function locateCertBundle(): string | undefined {
   return undefined;
 }
 
-async function innerTube(path: string, body: unknown): Promise<any> {
+async function innerTube(path: string, body: Record<string, unknown>): Promise<any> {
   const url = `${INNER_TUBE_BASE}/${path}?key=${WEB_API_KEY}&prettyPrint=false`;
   const res = await fetch(url, {
     method: "POST",
