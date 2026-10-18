@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  background: #121212;
+  color: #fff;
+  font-family: "Inter", "SpotifyMixUI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /* Belt + suspenders: nothing on this app should ever need to
+     horizontally scroll the document itself. Sub-scroll regions
+     carry their own overflow rules. */
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  overflow: hidden;
+}
+
+/* Spotify uses fully-rounded scrollbars but disables them on most surfaces.
+   These are subtle, dark, rounded thumbs. */
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 9999px; border: 3px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); border: 3px solid transparent; background-clip: padding-box; }
+
+@layer components {
+  .spotify-ink-primary { @apply text-white; }
+  .spotify-ink-secondary { @apply text-ink-secondary; }
+
+  /* Spotify-style pill button — the green play CTA. */
+  .btn-pill {
+    @apply inline-flex items-center justify-center rounded-full font-bold
+           transition-transform hover:scale-105 active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-pill-brand { @apply btn-pill bg-brand text-black hover:bg-brand-hover; }
+  .btn-pill-white { @apply btn-pill bg-white text-black hover:scale-105; }
+
+  .btn-circle {
+    @apply inline-flex items-center justify-center rounded-full
+           transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-circle-lg { @apply btn-circle bg-brand text-black hover:bg-brand-hover hover:scale-105; }
+  .btn-circle-md { @apply btn-circle bg-spotify-surface-2 text-white hover:bg-spotify-surface-3; }
+  .btn-circle-sm { @apply btn-circle text-ink-secondary hover:text-white hover:bg-white/10; }
+
+  /* Generic Spotify-style icon button. */
+  .btn-icon {
+    @apply inline-flex items-center justify-center rounded-full p-2
+           text-ink-secondary hover:text-white transition;
+  }
+
+  /* "Tile" used in card grids — slightly raised, hover lifts. */
+  .tile {
+    @apply bg-spotify-surface rounded-lg p-4 transition
+           hover:bg-spotify-surface-hover;
+  }
+
+  /* Sidebar nav item. */
+  .nav-item {
+    @apply flex items-center gap-4 px-3 py-2 rounded-md text-ink-secondary
+           font-bold text-sm transition hover:text-white;
+  }
+  .nav-item-active {
+    @apply nav-item text-white;
+  }
+
+  /* Custom range slider (Spotify uses thin, brand-colored progress). */
+  input[type="range"].spotify {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"].spotify::-webkit-slider-runnable-track {
+    height: 4px;
+    background: var(--track, #4d4d4d);
+    border-radius: 9999px;
+  }
+  input[type="range"].spotify::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 9999px;
+    background: var(--thumb, #fff);
+    margin-top: -4px;
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+  input[type="range"].spotify:hover::-webkit-slider-thumb { opacity: 1; }
+  input[type="range"].spotify::-moz-range-track {
+    height: 4px;
+    background: var(--track, #4d4d4d);
+    border-radius: 9999px;
+  }
+  input[type="range"].spotify::-moz-range-thumb {
+    height: 12px;
+    width: 12px;
+    border: none;
+    border-radius: 9999px;
+    background: var(--thumb, #fff);
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+  input[type="range"].spotify:hover::-moz-range-thumb { opacity: 1; }
+
+  /* Input pill (search). */
+  .search-pill {
+    @apply bg-spotify-surface-2 hover:bg-spotify-surface-3 focus-within:bg-spotify-surface-3
+           rounded-full flex items-center gap-3 px-4 h-10 max-w-sm w-full transition;
+  }
+  .search-pill input {
+    @apply bg-transparent outline-none text-sm text-white placeholder:text-ink-secondary flex-1 min-w-0;
+  }
+}
