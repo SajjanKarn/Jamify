@@ -5,3 +5,17 @@ dist
 .env
 .env.local
 .vite
+bin/yt-dlp
+tsconfig.tsbuildinfo
+vite.config.d.ts
+vite.config.js
+# TypeScript emit should stay in the source tree's tsc outDir; if
+# someone runs plain `tsc` against the server project, ignore the
+# orphan declaration / JS files.
+server/*.d.ts
+server/*.js
+# Background-runtime caches. The bgutil POT provider server and the
+# yt-dlp plugin zip are downloaded on first boot, then cached.
+.bin/bgutil-ytdlp-pot-provider
+.bin/yt-dlp
+.yt-dlp-plugins
