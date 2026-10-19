@@ -14,17 +14,18 @@ services:
     region: oregon                 # pick whatever's closest to your users
     # 1. Install Node deps.
     # 2. Build (no-op for the backend, but kept for parity).
-    # 3. Download yt-dlp into /usr/local/bin so it's available
-    #    before the first stream request. Render's free-tier
-    #    ephemeral disk means runtime self-install can lose the
-    #    binary across deploys — doing it in the build is the
-    #    only way to make it permanent.
+    # 3. Download yt-dlp into <cwd>/.bin/yt-dlp — the same path
+    #    the runtime resolver's last candidate checks. /usr/local/bin
+    #    is not writable by Render's build user; the project-local
+    #    .bin directory is. Runtime self-install still works as a
+    #    fallback for local dev.
     buildCommand: |
       npm install
       npm run build
-      curl -fsSL -o /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
-      chmod a+rx /usr/local/bin/yt-dlp
-      /usr/local/bin/yt-dlp --version
+      mkdir -p .bin
+      curl -fsSL -o .bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
+      chmod a+rx .bin/yt-dlp
+      ./.bin/yt-dlp --version
     startCommand: node --import dotenv/config server/index.ts
     healthCheckPath: /api/health
     envVars:
