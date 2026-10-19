@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useJamStore } from "../lib/store";
+import { apiOrigin } from "../lib/config";
 import { PlayIcon, PauseIcon, SkipNextIcon, HeartIcon, SearchIcon, LogoutIcon, CrownIcon } from "../components/icons";
 
 export default function JamRoom() {
@@ -181,7 +182,7 @@ export default function JamRoom() {
 
   async function onSearch(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+    const res = await fetch(`${apiOrigin()}/api/search?q=${encodeURIComponent(q)}`);
     const data = await res.json();
     setSearchResults(data.tracks ?? []);
   }

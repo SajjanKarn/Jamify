@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { RoomSnapshot, Track } from "./types";
 import { getSocket } from "./socket";
+import { apiOrigin } from "./config";
 
 interface JamState {
   // ---- Identity / room -----------------------------------------------
@@ -78,7 +79,7 @@ interface JamState {
 }
 
 async function resolveAudioUrl(videoId: string): Promise<{ url: string; expiresAt: number }> {
-  const res = await fetch(`/api/stream/${videoId}`);
+  const res = await fetch(`${apiOrigin()}/api/stream/${videoId}`);
   if (!res.ok) throw new Error("stream fetch failed");
   const data = await res.json();
   return { url: data.audioUrl, expiresAt: data.expiresAt };
@@ -337,7 +338,7 @@ export const useJamStore = create<JamState>((set, get) => {
     // ------------------------------------------------------------------
     setSearchResults: (tracks) => set({ searchResults: tracks }),
     async search(q) {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`${apiOrigin()}/api/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
       set({ searchResults: data.tracks ?? [] });
     },
