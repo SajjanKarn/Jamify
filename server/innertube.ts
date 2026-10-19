@@ -112,6 +112,10 @@ function ytDlpGetUrl(videoId: string): Promise<string> {
       "--no-warnings",
       "--no-playlist",
       "--no-progress",
+      // iOS client is the most permissive about PO tokens; the
+      // formats=missing_pot flag tells yt-dlp to use any format
+      // that doesn't strictly require one.
+      "--extractor-args", "youtube:player_client=ios,web_safari,android;formats=missing_pot",
       "-f",
       "bestaudio[ext=m4a]/bestaudio/best",
       "-g",
