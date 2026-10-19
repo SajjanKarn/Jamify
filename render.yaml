@@ -1,0 +1,51 @@
+# Render blueprint for Jamify backend.
+# Docs: https://render.com/blueprint-spec
+#
+# The matching frontend is deployed separately as a Render static
+# site — see vercel.json in the repo root for the Vercel-side rewrites,
+# or for a Render static site set VITE_API_URL on the static-site
+# service.
+
+services:
+  - type: web
+    name: jamify-api
+    runtime: node
+    plan: starter                  # cheapest always-on plan; free tier spins down
+    region: oregon                 # pick whatever's closest to your users
+    # 1. Install Node deps.
+    # 2. Build (no-op for the backend, but kept for parity).
+    # 3. Download yt-dlp into /usr/local/bin so it's available
+    #    before the first stream request. Render's free-tier
+    #    ephemeral disk means runtime self-install can lose the
+    #    binary across deploys — doing it in the build is the
+    #    only way to make it permanent.
+    buildCommand: |
+      npm install
+      npm run build
+      curl -fsSL -o /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
+      chmod a+rx /usr/local/bin/yt-dlp
+      /usr/local/bin/yt-dlp --version
+    startCommand: node --import dotenv/config server/index.ts
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.11.0
+      - key: RENDER_NODE_VERSION
+        value: 22.11.0
+      - key: PORT
+        value: "3001"
+      - key: PUBLIC_URL
+        # Replace with your static-site URL after you deploy it.
+        # Used for the share-link response and CORS allowlist.
+        sync: false
+      - key: ALLOWED_ORIGINS
+        # Comma-separated list of origins allowed to connect via
+        # Socket.IO. Must include your static-site URL.
+        sync: false
+      - key: YT_COOKIES_TXT
+        # Paste your YouTube cookies.txt (Netscape format) here to
+        # bypass the datacenter-IP anti-bot. ~5-15 KB.
+        sync: false
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
