@@ -112,12 +112,15 @@ function ytDlpGetUrl(videoId: string): Promise<string> {
       "--no-warnings",
       "--no-playlist",
       "--no-progress",
-      // iOS client is the most permissive about PO tokens; the
-      // formats=missing_pot flag tells yt-dlp to use any format
-      // that doesn't strictly require one.
-      "--extractor-args", "youtube:player_client=ios,web_safari,android;formats=missing_pot",
+      // mweb (mobile web) returns direct progressive mp4 URLs that
+      // browsers can play. iOS returns HLS manifests which Chrome
+      // and Firefox can't play. formats=missing_pot bypasses the
+      // PO-token gate.
+      "--extractor-args", "youtube:player_client=mweb,web_safari,ios,android;formats=missing_pot",
+      // Prefer http(s) progressive audio over HLS or DASH so the
+      // returned URL works in every browser without an HLS player.
       "-f",
-      "bestaudio[ext=m4a]/bestaudio/best",
+      "bestaudio[protocol^=http][ext=m4a]/bestaudio[protocol^=http]/bestaudio/best",
       "-g",
     ];
     const cookiesPath = getCookiesPath();
