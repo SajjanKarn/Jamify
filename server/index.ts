@@ -8,7 +8,7 @@ import express from "express";
 import cors from "cors";
 import http from "node:http";
 import { Server, type Socket } from "socket.io";
-import { searchTracks, resolveStream, YT_DLP_BIN, selfInstallPath } from "./innertube.js";
+import { searchTracks, resolveStream, YT_DLP_BIN, selfInstallPath, ytDlpStatus } from "./innertube.js";
 import { createRoom, getRoom, isHostRecoverable, snapshotRoom, type Room } from "./rooms.js";
 import { ensureCookies, getCookiesState } from "./cookies.js";
 
@@ -48,6 +48,14 @@ app.get("/api/cookies/status", (_req, res) => {
     stale: state.stale,
     note:
       "Set YT_COOKIES_TXT on Render to a Netscape-format cookies.txt exported from a browser logged into YouTube.",
+  });
+});
+
+app.get("/api/yt-dlp/status", (_req, res) => {
+  res.json({
+    ...ytDlpStatus(),
+    note:
+      "If selfInstallExists is false and resolved is 'yt-dlp', the binary download hasn't completed yet. The build command on Render should install yt-dlp to .bin/yt-dlp so it's available before the first request.",
   });
 });
 

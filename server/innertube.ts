@@ -47,6 +47,19 @@ export function selfInstallPath(): string {
   return `${process.cwd()}/.bin/yt-dlp`;
 }
 
+// Lightweight status info the dashboard / status endpoint can read.
+export function ytDlpStatus(): {
+  resolved: string;
+  selfInstallPath: string;
+  selfInstallExists: boolean;
+} {
+  return {
+    resolved: YT_DLP_BIN,
+    selfInstallPath: selfInstallPath(),
+    selfInstallExists: existsSync(selfInstallPath()),
+  };
+}
+
 // macOS system Python often lacks a working CA bundle. Locate the certifi
 // cacert.pem (pip-installed next to the binary) so yt-dlp can verify TLS.
 function locateCertBundle(): string | undefined {
