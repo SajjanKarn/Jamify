@@ -41,8 +41,15 @@ function resolveYtDlpBin(): string {
   }
   return "yt-dlp"; // last resort: rely on PATH
 }
-const YT_DLP_BIN = resolveYtDlpBin();
-export { YT_DLP_BIN };
+
+// Resolve on every call so the runtime self-install (which lands the
+// binary *after* module load) is visible without a server restart.
+export function getYtDlpBin(): string {
+  return resolveYtDlpBin();
+}
+// Backwards-compatible constant: resolved at module load, used by
+// other modules that only need the boot-time best guess.
+export const YT_DLP_BIN = resolveYtDlpBin();
 export function selfInstallPath(): string {
   return `${process.cwd()}/.bin/yt-dlp`;
 }
@@ -54,7 +61,7 @@ export function ytDlpStatus(): {
   selfInstallExists: boolean;
 } {
   return {
-    resolved: YT_DLP_BIN,
+    resolved: resolveYtDlpBin(),
     selfInstallPath: selfInstallPath(),
     selfInstallExists: existsSync(selfInstallPath()),
   };
@@ -115,7 +122,7 @@ function ytDlpGetUrl(videoId: string): Promise<string> {
     }
     args.push(videoId);
     const proc = spawn(
-      YT_DLP_BIN,
+      getYtDlpBin(),
       args,
       { stdio: ["ignore", "pipe", "pipe"], env },
     );
