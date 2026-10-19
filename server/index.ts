@@ -8,7 +8,7 @@ import express from "express";
 import cors from "cors";
 import http from "node:http";
 import { Server, type Socket } from "socket.io";
-import { searchTracks, resolveStream } from "./innertube.js";
+import { searchTracks, resolveStream, YT_DLP_BIN, selfInstallPath } from "./innertube.js";
 import { createRoom, getRoom, isHostRecoverable, snapshotRoom, type Room } from "./rooms.js";
 import { ensureCookies, getCookiesState } from "./cookies.js";
 
@@ -380,6 +380,55 @@ io.on("connection", (socket: Socket) => {
   });
 });
 
+// Ensure yt-dlp is available before the first stream request. If none
+// of the candidate paths resolve, download the official release into
+// `<cwd>/.bin/yt-dlp` so the resolver's last candidate finds it.
+async function ensureYtDlp(): Promise<void> {
+  const target = selfInstallPath();
+  try {
+    const { existsSync, mkdirSync } = await import("node:fs");
+    const { spawnSync } = await import("node:child_process");
+    if (existsSync(target)) {
+      const v = spawnSync(target, ["--version"], { encoding: "utf8" });
+      if (v.status === 0) {
+        console.log(`[jamify] yt-dlp ready at ${target} (${v.stdout.trim()})`);
+        return;
+      }
+      console.warn(`[jamify] yt-dlp at ${target} returned non-zero; replacing`);
+    }
+    const dir = target.slice(0, target.lastIndexOf("/"));
+    mkdirSync(dir, { recursive: true });
+    console.log(`[jamify] yt-dlp missing — downloading to ${target}`);
+    const res = await fetch(
+      "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp",
+    );
+    if (!res.ok) {
+      console.warn(
+        `[jamify] yt-dlp download failed: HTTP ${res.status} (${res.statusText})`,
+      );
+      return;
+    }
+    const buf = Buffer.from(await res.arrayBuffer());
+    await import("node:fs/promises").then((fs) =>
+      fs.writeFile(target, buf, { mode: 0o755 }),
+    );
+    const v = spawnSync(target, ["--version"], { encoding: "utf8" });
+    if (v.status === 0) {
+      console.log(`[jamify] yt-dlp self-installed (${v.stdout.trim()})`);
+    } else {
+      console.warn(`[jamify] yt-dlp self-installed binary not executable: ${v.stderr}`);
+    }
+  } catch (err) {
+    console.warn(`[jamify] yt-dlp self-install skipped: ${(err as Error).message}`);
+  }
+}
+
 httpServer.listen(PORT, () => {
   console.log(`Jamify backend listening on http://localhost:${PORT}`);
+  console.log(`Jamify yt-dlp binary:  ${YT_DLP_BIN}`);
+  // Self-install runs after listen so the server is up immediately
+  // even if the download takes a few seconds.
+  ensureYtDlp().then(() => {
+    console.log(`[jamify] yt-dlp bootstrap complete`);
+  });
 });

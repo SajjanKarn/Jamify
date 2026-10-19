@@ -17,7 +17,35 @@ import { getCookiesPath } from "./cookies.js";
 const INNER_TUBE_BASE = "https://www.youtube.com/youtubei/v1";
 const WEB_API_KEY = process.env.YT_API_KEY ?? "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y_YfRv9c";
 const CLIENT_VERSION = "2.20240101.00.00";
-const YT_DLP_BIN = process.env.YT_DLP_BIN ?? "/Users/sajjankarna/Library/Python/3.13/bin/yt-dlp";
+
+// yt-dlp binary resolution. Priority:
+//   1. `YT_DLP_BIN` env var (CI / container paths)
+//   2. Common absolute locations across dev hosts and Render
+//   3. `<cwd>/.bin/yt-dlp` — self-install fallback (next to server)
+//   4. Bare `yt-dlp` so PATH resolution handles Homebrew, Linux
+//      packages, pipx, etc.
+function resolveYtDlpBin(): string {
+  if (process.env.YT_DLP_BIN && existsSync(process.env.YT_DLP_BIN)) {
+    return process.env.YT_DLP_BIN;
+  }
+  const candidates = [
+    "/usr/local/bin/yt-dlp",          // Render build / Linux system
+    "/usr/bin/yt-dlp",                // apt / system installs on Linux
+    "/opt/homebrew/bin/yt-dlp",       // Homebrew (Apple Silicon)
+    "/usr/local/bin/yt-dlp_macos",    // legacy Homebrew (Intel)
+    "/Users/sajjankarna/Library/Python/3.13/bin/yt-dlp", // personal dev box
+    `${process.cwd()}/.bin/yt-dlp`,   // self-install fallback
+  ];
+  for (const p of candidates) {
+    if (existsSync(p)) return p;
+  }
+  return "yt-dlp"; // last resort: rely on PATH
+}
+const YT_DLP_BIN = resolveYtDlpBin();
+export { YT_DLP_BIN };
+export function selfInstallPath(): string {
+  return `${process.cwd()}/.bin/yt-dlp`;
+}
 
 // macOS system Python often lacks a working CA bundle. Locate the certifi
 // cacert.pem (pip-installed next to the binary) so yt-dlp can verify TLS.
