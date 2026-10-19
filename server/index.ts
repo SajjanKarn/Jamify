@@ -10,6 +10,7 @@ import http from "node:http";
 import { Server, type Socket } from "socket.io";
 import { searchTracks, resolveStream } from "./innertube.js";
 import { createRoom, getRoom, isHostRecoverable, snapshotRoom, type Room } from "./rooms.js";
+import { ensureCookies, getCookiesState } from "./cookies.js";
 
 const PORT = Number(process.env.PORT ?? 3001);
 const HOST_GRACE_MS = 5 * 60 * 1000; // host can refresh and reclaim within 5 min
@@ -17,8 +18,37 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Load YouTube cookies from `YT_COOKIES_TXT` env var. Without this,
+// yt-dlp will fail with the "do i pass cookies" anti-bot error
+// on every stream from Render's datacenter IP.
+{
+  const state = ensureCookies();
+  if (state.configured) {
+    console.log(
+      `[jamify] YouTube cookies: ${state.bytes} bytes at ${state.path}` +
+        (state.stale ? " (stale — consider refreshing)" : ""),
+    );
+  } else {
+    console.warn(
+      `[jamify] YouTube cookies: NOT CONFIGURED. Set YT_COOKIES_TXT on Render (Netscape format) or stream requests will return 500.`,
+    );
+  }
+}
+
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, time: Date.now() });
+});
+
+app.get("/api/cookies/status", (_req, res) => {
+  const state = getCookiesState();
+  res.json({
+    configured: state.configured,
+    bytes: state.bytes,
+    path: state.path,
+    stale: state.stale,
+    note:
+      "Set YT_COOKIES_TXT on Render to a Netscape-format cookies.txt exported from a browser logged into YouTube.",
+  });
 });
 
 app.get("/api/search", async (req, res) => {

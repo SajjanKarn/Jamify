@@ -12,6 +12,7 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { fetch } from "undici";
+import { getCookiesPath } from "./cookies.js";
 
 const INNER_TUBE_BASE = "https://www.youtube.com/youtubei/v1";
 const WEB_API_KEY = process.env.YT_API_KEY ?? "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y_YfRv9c";
@@ -59,17 +60,22 @@ function ytDlpGetUrl(videoId: string): Promise<string> {
     const env = { ...process.env };
     const cert = locateCertBundle();
     if (cert) env.SSL_CERT_FILE = cert;
+    const args: string[] = [
+      "--no-warnings",
+      "--no-playlist",
+      "--no-progress",
+      "-f",
+      "bestaudio[ext=m4a]/bestaudio/best",
+      "-g",
+    ];
+    const cookiesPath = getCookiesPath();
+    if (cookiesPath && existsSync(cookiesPath)) {
+      args.push("--cookies", cookiesPath);
+    }
+    args.push(videoId);
     const proc = spawn(
       YT_DLP_BIN,
-      [
-        "--no-warnings",
-        "--no-playlist",
-        "--no-progress",
-        "-f",
-        "bestaudio[ext=m4a]/bestaudio/best",
-        "-g",
-        videoId,
-      ],
+      args,
       { stdio: ["ignore", "pipe", "pipe"], env },
     );
     let stdout = "";

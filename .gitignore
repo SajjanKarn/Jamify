@@ -18,4 +18,5 @@ server/*.js
 # yt-dlp plugin zip are downloaded on first boot, then cached.
 .bin/bgutil-ytdlp-pot-provider
 .bin/yt-dlp
+.bin/cookies.txt
 .yt-dlp-plugins
